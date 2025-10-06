@@ -1,0 +1,4 @@
+build
+sdkconfig
+hello_rom_in_rom.bin
+dependencies.lock
