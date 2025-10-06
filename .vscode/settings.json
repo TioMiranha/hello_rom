@@ -1,7 +1,107 @@
 {
-    "idf.port": "/dev/ttyUSB0",
-    "idf.flashType": "UART",
-    "idf.espIdfPath": "/home/eduardo-silva/esp/esp-idf",
-    "idf.toolsPath": "/home/eduardo-silva/.espressif",
-    "idf.pythonInstallPath": "/home/eduardo-silva/.espressif/python_env/idf4.4_py3.11_env/bin/python"
+  "idf.port": "/dev/ttyUSB0",
+  "idf.flashType": "UART",
+  "idf.espIdfPath": "/home/eduardo-silva/esp/esp-idf",
+  "idf.toolsPath": "/home/eduardo-silva/.espressif",
+  "idf.pythonInstallPath": "/home/eduardo-silva/.espressif/python_env/idf4.4_py3.11_env/bin/python",
+  "workbench.editor.labelFormat": "short",
+  "editor.tabSize": 2,
+  "explorer.compactFolders": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[svg]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "idf.openOcdConfigs": [
+    "interface/ftdi/esp32_devkitj_v1.cfg",
+    "target/esp32.cfg"
+  ],
+  "files.associations": {
+    "server.h": "c",
+    "ledconfig.h": "c",
+    "net_eth.h": "c",
+    "config_geral.h": "c",
+    "ota.h": "c",
+    "cstdint": "cpp",
+    "pca9555.h": "c",
+    "array": "cpp",
+    "atomic": "cpp",
+    "bit": "cpp",
+    "cctype": "cpp",
+    "clocale": "cpp",
+    "cmath": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "cstdarg": "cpp",
+    "cstddef": "cpp",
+    "cstdio": "cpp",
+    "cstdlib": "cpp",
+    "cstring": "cpp",
+    "ctime": "cpp",
+    "cwchar": "cpp",
+    "cwctype": "cpp",
+    "deque": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "exception": "cpp",
+    "algorithm": "cpp",
+    "functional": "cpp",
+    "iterator": "cpp",
+    "memory": "cpp",
+    "memory_resource": "cpp",
+    "numeric": "cpp",
+    "optional": "cpp",
+    "random": "cpp",
+    "string_view": "cpp",
+    "system_error": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "utility": "cpp",
+    "initializer_list": "cpp",
+    "iomanip": "cpp",
+    "iosfwd": "cpp",
+    "iostream": "cpp",
+    "istream": "cpp",
+    "limits": "cpp",
+    "new": "cpp",
+    "numbers": "cpp",
+    "ostream": "cpp",
+    "sstream": "cpp",
+    "stdexcept": "cpp",
+    "streambuf": "cpp",
+    "cinttypes": "cpp",
+    "typeinfo": "cpp",
+    "pwminclude.h": "c"
+  },
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32c3"
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
+  },
+  "[cmake]": {
+    "editor.defaultFormatter": "KylinIdeTeam.cmake-intellisence"
+  }
 }
