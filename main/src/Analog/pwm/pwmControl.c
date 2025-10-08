@@ -10,7 +10,7 @@ output_channel_t outputs[NUM_OUTPUTS] = {
 
 void set_voltage(int output_index, float voltage)
 {
-    // 🔥 CORREÇÃO: Removida a verificação de output_index para teste único
+    // CORREÇÃO: Removida a verificação de output_index para teste único
     // Use output_index = 0 para testar no canal 0
 
     if (voltage < 0.0f)
@@ -18,12 +18,14 @@ void set_voltage(int output_index, float voltage)
     if (voltage > 10.0f)
         voltage = 10.0f;
 
-    uint32_t duty = (uint32_t)((voltage / 10.0f) * 4095.0f);
+    uint32_t duty = 0;
 
-    if (duty > 8191)
-        duty = 8191;
+    if (duty > 4095)
+        duty = 4095;
 
-    // 🔥 CORREÇÃO: Usando LEDC_CHANNEL fixo para teste com GPIO4
+    set_voltage_calibrated(output_index, voltage, &duty);
+
+    // CORREÇÃO: Usando LEDC_CHANNEL fixo para teste com GPIO4
     ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty);
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 
@@ -33,19 +35,20 @@ void set_voltage(int output_index, float voltage)
 
 // Tabela de calibração
 cal_point_t calibration_table[NUM_OUTPUTS][5] = {
-    {{0.0, 0}, {2.5, 2048}, {5.0, 4096}, {7.5, 6144}, {10.0, 8191}},
-    {{0.0, 0}, {2.5, 2048}, {5.0, 4096}, {7.5, 6144}, {10.0, 8191}},
-    {{0.0, 0}, {2.5, 2048}, {5.0, 4096}, {7.5, 6144}, {10.0, 8191}},
-    {{0.0, 0}, {2.5, 2048}, {5.0, 4096}, {7.5, 6144}, {10.0, 8191}}};
+    {{10.0, 4095}, {8.0, 3071}, {6.9, 2047}, {3.5, 1023}, {0.0, 0}},
+    {{10.0, 4095}, {8.0, 3071}, {6.9, 2047}, {3.5, 1023}, {0.0, 0}},
+    {{10.0, 4095}, {8.0, 3071}, {6.9, 2047}, {3.5, 1023}, {0.0, 0}},
+    {{10.0, 4095}, {8.0, 3071}, {6.9, 2047}, {3.5, 1023}, {0.0, 0}}};
 
-void set_voltage_calibrated(int output_index, float voltage)
+void set_voltage_calibrated(int output_index, float voltage, uint32_t *duty)
 {
-    // 🔥 CORREÇÃO: Adicionado loop completo e declaração de variável
+    // CORREÇÃO: Adicionado loop completo e declaração de variável
     if (output_index < 0 || output_index >= NUM_OUTPUTS)
         return;
 
+    *duty = 4095 - (uint32_t)((voltage / 10.0f) * 4095.0f);
+
     cal_point_t *cal = calibration_table[output_index];
-    uint32_t duty = 0;
 
     // Interpolação linear entre pontos de calibração
     for (int i = 0; i < 4; i++)
@@ -57,14 +60,11 @@ void set_voltage_calibrated(int output_index, float voltage)
             float ratio = (voltage - cal[i].measured_voltage) /
                           (cal[i + 1].measured_voltage - cal[i].measured_voltage);
 
-            duty = cal[i].pwm_duty +
-                   (uint32_t)(ratio * (cal[i + 1].pwm_duty - cal[i].pwm_duty));
+            *duty = 4095 - cal[i].pwm_duty +
+                    (uint32_t)(ratio * (cal[i + 1].pwm_duty - cal[i].pwm_duty));
             break;
         }
     }
-
-    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty);
-    ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 }
 
 void pwmControlSignal(void)
@@ -82,6 +82,7 @@ void pwmControlSignal(void)
 
     // Levar a 0V
     set_voltage(0, 0.0f); // Usando índice 0, mas canal fixo
+    ESP_LOGI("TEST", "Testando saída única no GPIO%d", LEDC_OUTPUT_IO);
     vTaskDelay(pdMS_TO_TICKS(2000));
 
     // Varredura de 0-10V
@@ -98,7 +99,7 @@ void pwmControlSignal(void)
 
     // CORREÇÃO: Loop principal simplificado
     ESP_LOGI("TEST", "Iniciando ciclo contínuo de teste");
-    float test_voltages[] = {0.0f, 2.5f, 5.0f, 7.5f, 10.0f};
+    float test_voltages[] = {0.0f, 2.5f, 5.0f, 7.5f, 12.0f};
     int num_voltages = sizeof(test_voltages) / sizeof(test_voltages[0]);
 
     while (1)
