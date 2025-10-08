@@ -103,5 +103,8 @@
   },
   "[cmake]": {
     "editor.defaultFormatter": "KylinIdeTeam.cmake-intellisence"
+  },
+  "[c]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
   }
 }

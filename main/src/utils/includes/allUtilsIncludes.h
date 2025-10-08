@@ -1,0 +1,1 @@
+double potencia(double x, int y);

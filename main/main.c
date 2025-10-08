@@ -1,4 +1,4 @@
-#include "./src/Analog/includes/pwmInclude.h"
+#include "main.h"
 
 void app_main(void)
 {
