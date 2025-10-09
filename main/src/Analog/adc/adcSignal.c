@@ -13,109 +13,77 @@ void adc_init(void)
   esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH,
                            ESP_ADC_CAL_VAL_DEFAULT_VREF, adc_chars);
 
-  ESP_LOGI("ADC", "ADC inicializado no GPIO%d", ADC1_CHANNEL_0_GPIO_NUM);
+  ESP_LOGI("ADC", "ADC inicializado no GPIO%d", ADC1_CHANNEL_0);
 }
 
 float read_voltage(void)
 {
+  if (adc_chars == NULL)
+  {
+    adc_init();
+  }
+
   uint32_t adc_reading = 0;
 
   // Fazer média de várias leituras
+  printf("Coletando %d amostras ADC:\n", ADC_SAMPLES);
   for (int i = 0; i < ADC_SAMPLES; i++)
   {
-    adc_reading += adc1_get_raw(ADC_CHANNEL);
+    uint32_t single_read = adc1_get_raw(ADC_CHANNEL);
+    adc_reading += single_read;
+    printf("  Amostra %2d: %4u | Acumulado: %6u\n",
+           i, single_read, adc_reading);
+
+    vTaskDelay(pdMS_TO_TICKS(10)); // Pequena pausa entre leituras
   }
-  adc_reading /= ADC_SAMPLES;
+
+  // Calcular média
+  uint32_t average_raw = adc_reading / ADC_SAMPLES;
+  printf("-> Média das leituras: %u\n", average_raw);
 
   // Converter para tensão (mV)
-  uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+  uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(average_raw, adc_chars);
+  printf("-> Tensão convertida: %u mV\n", voltage_mv);
+
+  // Converter para Volts
   float voltage_v = (float)voltage_mv / 1000.0f;
+  printf("-> Tensão em Volts: %.3f V\n", voltage_v);
 
-  // Aplicar fator do divisor de tensão (se houver)
-  voltage_v *= VOLTAGE_DIVIDER_RATIO;
+  // Aplicar fator do divisor de tensão
+  float final_voltage = voltage_v * VOLTAGE_DIVIDER_RATIO;
+  printf("-> Tensão final (com divisor): %.3f V\n", final_voltage);
+  printf("----------------------------------------\n");
 
-  return voltage_v;
+  return final_voltage;
 }
 
-// CONTROLE PID SIMPLES PARA MANTER 10.0V EXATOS
-typedef struct
+uint32_t pid_control(float measured_voltage, pid_controller_t *pid)
 {
-  float setpoint;
-  float kp, ki, kd;
-  float integral;
-  float previous_error;
-} pid_controller_t;
-
-pid_controller_t pid = {
-    .setpoint = 10.0f, // 10.0V desejados
-    .kp = 0.5f,        // Ganho proporcional - AJUSTE
-    .ki = 0.01f,       // Ganho integral - AJUSTE
-    .kd = 0.1f,        // Ganho derivativo - AJUSTE
-    .integral = 0.0f,
-    .previous_error = 0.0f};
-
-uint32_t pid_control(float measured_voltage)
-{
-  float error = pid.setpoint - measured_voltage;
+  float error = pid->setpoint - measured_voltage;
 
   // Termo Proporcional
-  float proportional = pid.kp * error;
+  float proportional = pid->kp * error;
 
   // Termo Integral
-  pid.integral += error;
-  float integral = pid.ki * pid.integral;
+  pid->integral += error;
+  float integral = pid->ki * pid->integral;
 
   // Termo Derivativo
-  float derivative = pid.kd * (error - pid.previous_error);
-  pid.previous_error = error;
+  float derivative = pid->kd * (error - pid->previous_error);
+  pid->previous_error = error;
 
   // Soma todos os termos
-  float output = proportional + integral + derivative;
+  float output_delta = proportional + integral + derivative;
 
-  // Converter para duty cycle (0-8191)
-  uint32_t duty = (uint32_t)(output * 8191.0f / 10.0f);
+  static uint32_t current_duty = 1500;
+  int32_t new_duty = current_duty + (int32_t)output_delta;
 
   // Limitar duty cycle
-  if (duty > 8191)
-    duty = 8191;
-  if (duty < 0)
-    duty = 0;
+  if (new_duty >= 7150)
+    new_duty = 1112;
+  if (new_duty < 0)
+    new_duty = 0;
 
-  return duty;
-}
-
-void maintain_exact_10v_closed_loop(void)
-{
-  ESP_LOGI("CLOSED_LOOP", "🎯 Iniciando controle em malha fechada para 10.0V exatos");
-
-  // Inicializar PWM e ADC
-  ledc_Timer();
-  ledc_Channel();
-  adc_init();
-
-  // Valor inicial
-  uint32_t current_duty = 7500;
-  ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, current_duty);
-  ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
-
-  vTaskDelay(pdMS_TO_TICKS(1000));
-
-  while (1)
-  {
-    // Ler tensão atual
-    float measured_voltage = read_voltage();
-
-    // Calcular novo duty cycle usando PID
-    current_duty = pid_control(measured_voltage);
-
-    // Aplicar novo duty cycle
-    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, current_duty);
-    ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
-
-    // Log
-    ESP_LOGI("CLOSED_LOOP", "Medido: %.3fV | Duty: %lu | Erro: %.3fV",
-             measured_voltage, current_duty, 10.0f - measured_voltage);
-
-    vTaskDelay(pdMS_TO_TICKS(100)); // Loop a cada 100ms
-  }
+  current_duty = new_duty;
+  return current_duty;
 }

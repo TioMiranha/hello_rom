@@ -1,7 +1,7 @@
 #ifndef PWMCONSTRUCTOR_H
 #define PWMCONSTRUCTOR_H
 #include "../structs/pwmStructs.h"
-#include "esp_log.h"
+#include "generalIncludes.h"
 
 #define LEDC_TIMER LEDC_TIMER_0
 #define LEDC_MODE LEDC_LOW_SPEED_MODE

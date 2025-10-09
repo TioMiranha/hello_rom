@@ -93,7 +93,8 @@
     "streambuf": "cpp",
     "cinttypes": "cpp",
     "typeinfo": "cpp",
-    "pwminclude.h": "c"
+    "pwminclude.h": "c",
+    "pwmstructs.h": "c"
   },
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32c3"

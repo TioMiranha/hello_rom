@@ -1,37 +1,11 @@
 #include <stdio.h>
 #include "../includes/pwmInclude.h"
 
-// Definição do array de saídas (mantido para compatibilidade futura)
 output_channel_t outputs[NUM_OUTPUTS] = {
     {LEDC_CHANNEL_0, 2, "VOUT_1"},
     {LEDC_CHANNEL_1, 3, "VOUT_2"},
     {LEDC_CHANNEL_2, 6, "VOUT_3"},
     {LEDC_CHANNEL_3, 7, "VOUT_4"}};
-
-void set_voltage(int output_index, float voltage)
-{
-    // CORREÇÃO: Removida a verificação de output_index para teste único
-    // Use output_index = 0 para testar no canal 0
-
-    if (voltage < 0.0f)
-        voltage = 0.0f;
-    if (voltage > 10.0f)
-        voltage = 10.0f;
-
-    uint32_t duty = 0;
-
-    if (duty > 4095)
-        duty = 4095;
-
-    set_voltage_calibrated(output_index, voltage, &duty);
-
-    // CORREÇÃO: Usando LEDC_CHANNEL fixo para teste com GPIO4
-    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty);
-    ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
-
-    ESP_LOGI("VOLTAGE", "GPIO%d: %.2fV -> duty: %lu",
-             LEDC_OUTPUT_IO, voltage, duty);
-}
 
 // Tabela de calibração
 cal_point_t calibration_table[NUM_OUTPUTS][5] = {
@@ -40,7 +14,7 @@ cal_point_t calibration_table[NUM_OUTPUTS][5] = {
     {{10.0, 4095}, {8.0, 3071}, {6.9, 2047}, {3.5, 1023}, {0.0, 0}},
     {{10.0, 4095}, {8.0, 3071}, {6.9, 2047}, {3.5, 1023}, {0.0, 0}}};
 
-void set_voltage_calibrated(int output_index, float voltage, uint32_t *duty)
+/*void set_voltage_calibrated(int output_index, float voltage, uint32_t *duty)
 {
     // CORREÇÃO: Adicionado loop completo e declaração de variável
     if (output_index < 0 || output_index >= NUM_OUTPUTS)
@@ -65,50 +39,42 @@ void set_voltage_calibrated(int output_index, float voltage, uint32_t *duty)
             break;
         }
     }
-}
+}*/
 
 void pwmControlSignal(void)
 {
-    ESP_LOGI("MAIN", "Iniciando controle de saída analógica única no GPIO: [%d]", LEDC_OUTPUT_IO);
+    ESP_LOGI("MAIN", "🎯 CONTROLE EM MALHA FECHADA COM PID");
 
-    // Inicializar PWM
-    ledc_timer_config_t timerLed = ledc_Timer();
-    ledc_channel_config_t channelLed = ledc_Channel();
+    ledc_Timer();
+    ledc_Channel();
+    adc_init();
 
-    vTaskDelay(pdMS_TO_TICKS(100));
+    pid_controller_t pid = {
+        .setpoint = 10.0f,
+        .kp = 0.8f,
+        .ki = 0.1f,
+        .kd = 0.05f,
+        .integral = 0.0f,
+        .previous_error = 0.0f};
 
-    // CORREÇÃO: Teste simplificado para uma única saída
-    ESP_LOGI("TEST", "Testando saída única no GPIO%d", LEDC_OUTPUT_IO);
+    uint32_t current_duty = 1112; // Valor inicial conservador
+    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, current_duty);
+    ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 
-    // Levar a 0V
-    set_voltage(0, 0.0f); // Usando índice 0, mas canal fixo
-    ESP_LOGI("TEST", "Testando saída única no GPIO%d", LEDC_OUTPUT_IO);
     vTaskDelay(pdMS_TO_TICKS(2000));
 
-    // Varredura de 0-10V
-    ESP_LOGI("TEST", "Iniciando varredura 0-10V");
-    for (float volt = 0.0f; volt <= 10.0f; volt += 1.0f)
+    for (;;)
     {
-        set_voltage(0, volt); // Usando índice 0, mas canal fixo
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+        float measured_voltage = read_voltage();
 
-    // Voltar a 0V
-    set_voltage(0, 0.0f);
-    vTaskDelay(pdMS_TO_TICKS(2000));
+        current_duty = pid_control(measured_voltage, &pid);
 
-    // CORREÇÃO: Loop principal simplificado
-    ESP_LOGI("TEST", "Iniciando ciclo contínuo de teste");
-    float test_voltages[] = {0.0f, 2.5f, 5.0f, 7.5f, 12.0f};
-    int num_voltages = sizeof(test_voltages) / sizeof(test_voltages[0]);
+        ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, current_duty);
+        ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 
-    while (1)
-    {
-        for (int i = 0; i < num_voltages; i++)
-        {
-            set_voltage(0, test_voltages[i]);
-            ESP_LOGI("TEST", "Mantendo: %.1fV", test_voltages[i]);
-            vTaskDelay(pdMS_TO_TICKS(3000));
-        }
+        ESP_LOGI("PID", "Alvo: 10.0V | Medido: %.2fV | Duty: %lu | Erro: %.2fV",
+                 measured_voltage, current_duty, 10.0f - measured_voltage);
+
+        vTaskDelay(pdMS_TO_TICKS(1500)); // Controle a cada 500ms
     }
 }
