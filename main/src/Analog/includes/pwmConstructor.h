@@ -5,7 +5,11 @@
 
 #define LEDC_TIMER LEDC_TIMER_0
 #define LEDC_MODE LEDC_LOW_SPEED_MODE
-#define LEDC_OUTPUT_IO (4) // GPIO4 para teste
+#define LEDC_OUTPUT_IO_0 (0)
+#define LEDC_OUTPUT_IO_1 (1)
+#define LEDC_OUTPUT_IO_2 (2)
+#define LEDC_OUTPUT_IO_3 (3) // GPIO4 para teste
+#define LEDC_OUTPUT_IO_4 (4)
 #define LEDC_CHANNEL LEDC_CHANNEL_0
 #define LEDC_DUTY_RES LEDC_TIMER_13_BIT
 #define LEDC_FREQUENCY (1000)

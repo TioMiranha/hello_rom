@@ -6,7 +6,6 @@ void adc_init(void)
 {
   // Configurar ADC
   adc1_config_width(ADC_WIDTH);
-  adc1_config_channel_atten(ADC_CHANNEL, ADC_ATTEN);
 
   // Caracterização do ADC para melhor precisão
   adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
@@ -16,17 +15,19 @@ void adc_init(void)
   ESP_LOGI("ADC", "ADC inicializado no GPIO%d", ADC1_CHANNEL_0);
 }
 
-float read_voltage(void)
+float read_voltage(int index, output_channel_t *channel_index)
 {
   if (adc_chars == NULL)
   {
     adc_init();
   }
 
-  uint32_t adc_reading = 0;
+  adc1_config_channel_atten(channel_index->pwm_channel, ADC_ATTEN_DB_11);
 
+  uint32_t adc_reading = 0;
   // Fazer média de várias leituras
   printf("Coletando %d amostras ADC:\n", ADC_SAMPLES);
+
   for (int i = 0; i < ADC_SAMPLES; i++)
   {
     uint32_t single_read = adc1_get_raw(ADC_CHANNEL);
