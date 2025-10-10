@@ -94,7 +94,8 @@
     "cinttypes": "cpp",
     "typeinfo": "cpp",
     "pwminclude.h": "c",
-    "pwmstructs.h": "c"
+    "pwmstructs.h": "c",
+    "pwmconstructor.h": "c"
   },
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32c3"

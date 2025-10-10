@@ -11,6 +11,15 @@ void adc_init(void)
   adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
   esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH,
                            ESP_ADC_CAL_VAL_DEFAULT_VREF, adc_chars);
+  for (int i = 0; i < NUM_OUTPUTS; i++)
+  {
+    if (outputs[i].enabled)
+    {
+      adc1_config_channel_atten(outputs[i].adc_channel, ADC_ATTEN_DB_11);
+      ESP_LOGI("ADC", "Canal ADC %d configurado para %s",
+               outputs[i].adc_channel, outputs[i].name);
+    }
+  }
 
   ESP_LOGI("ADC", "ADC inicializado no GPIO%d", ADC1_CHANNEL_0);
 }
@@ -22,15 +31,13 @@ float read_voltage(int index, output_channel_t *channel_index)
     adc_init();
   }
 
-  adc1_config_channel_atten(channel_index->pwm_channel, ADC_ATTEN_DB_11);
-
   uint32_t adc_reading = 0;
   // Fazer média de várias leituras
   printf("Coletando %d amostras ADC:\n", ADC_SAMPLES);
 
   for (int i = 0; i < ADC_SAMPLES; i++)
   {
-    uint32_t single_read = adc1_get_raw(ADC_CHANNEL);
+    uint32_t single_read = adc1_get_raw(channel_index->adc_channel);
     adc_reading += single_read;
     printf("  Amostra %2d: %4u | Acumulado: %6u\n",
            i, single_read, adc_reading);
