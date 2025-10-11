@@ -95,7 +95,9 @@
     "typeinfo": "cpp",
     "pwminclude.h": "c",
     "pwmstructs.h": "c",
-    "pwmconstructor.h": "c"
+    "pwmconstructor.h": "c",
+    "modbus.h": "c",
+    "allutilsincludes.h": "c"
   },
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32c3"
