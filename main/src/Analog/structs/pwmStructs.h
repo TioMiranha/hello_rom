@@ -1,6 +1,5 @@
 #ifndef PWMSTRUCT_H
 #define PWMSTRUCT_H
-#include "adcStructs.h"
 #include "driver/ledc.h"
 
 extern ledc_timer_config_t ledc_timer;
@@ -9,10 +8,10 @@ extern ledc_channel_config_t ledc_channel;
 typedef struct
 {
   int pwm_channel;
-  int adc_channel;
   int gpio_num;
   const char *name;
-  pid_controller_t pid;
+  int mode;
+  uint32_t voltage_duty;
   uint32_t current_duty;
   float current_voltage;
   int enabled;

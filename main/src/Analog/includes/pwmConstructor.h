@@ -1,7 +1,6 @@
 #ifndef PWMCONSTRUCTOR_H
 #define PWMCONSTRUCTOR_H
 #include "../structs/pwmStructs.h"
-#include "../includes/adcSignal.h"
 #include "generalIncludes.h"
 
 #define LEDC_TIMER LEDC_TIMER_0

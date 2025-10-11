@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "src/Analog/pwm/pwmControl.c" "src/Analog/pwm/pwmConstructor.c" "src/utils/potencia.c" "src/Analog/adc/adcSignal.c"
+idf_component_register(SRCS "main.c" "src/Analog/pwm/pwmControl.c" "src/Analog/pwm/pwmConstructor.c" "src/utils/potencia.c"
     INCLUDE_DIRS "."
 )
 
